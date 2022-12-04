@@ -52,7 +52,8 @@ export async function mint(
   contractAddress,
   tokenId,
   price,
-  successCallback
+  successCallback,
+  failureCallback
 ) {
   let contract = await getSaleContract(
     Blockchain,
@@ -60,22 +61,24 @@ export async function mint(
     web3ModalRef,
     contractAddress
   );
-  console.log("sale contract to mint from ", contract);
-  if (Blockchain == "tron") {
-    await contract.purchaseThisToken(tokenId).send({
-      feeLimit: 100000000,
-      callValue: price,
-      shouldPollResponse: true,
-    });
-  } else if (Blockchain == "polygon") {
+  try {
+    // console.log("sale contract to mint from ", contract);
     let tx = await contract.purchaseThisToken(tokenId, {
       value: price,
     });
-    await tx.wait();
-    successCallback();
-  } else {
-    // dont support
+  } catch (e) {
+    console.log(e);
+    if (e.data?.message?.toString().includes("insufficient funds")) {
+      alert("Insufficient funds to mint token");
+
+      return 0;
+    }
+    failureCallback();
+
+    return 0;
   }
+  await tx.wait();
+  successCallback();
 }
 export async function getTokenOwner(Blockchain, contract) {
   if (Blockchain == "tron") {

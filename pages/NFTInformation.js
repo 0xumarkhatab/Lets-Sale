@@ -53,9 +53,8 @@ function NFTInformation(props) {
       price: nftPrice,
     });
     setMintingStatus("Minting..");
-    setTimeout(() => {
-      setMintingStatus("Please Wait..");
-    }, 4000);
+
+    setMintingStatus("Please Wait..");
     await mint(
       Blockchain,
       NetworkChain,
@@ -63,13 +62,19 @@ function NFTInformation(props) {
       contractAddress,
       tokenId,
       nft?.price,
-      successCallback
+      successCallback,
+      failureFallback
     );
   }
   async function successCallback() {
     setMintingStatus("Purchased Successfully 🥳");
     setOwner(address);
   }
+  async function failureFallback() {
+    setMintingStatus("Purchased Failed!");
+    setOwner(null);
+  }
+
   function getCurrency() {
     return Blockchain == "ethereum"
       ? "ETH"

@@ -27,6 +27,7 @@ export default function Home() {
   const [baseURI, setBaseURI] = useState(null);
   const [NFTs, setNFTs] = useState([]);
   const [walletAddress, setWalletAddress] = useState(null);
+  const [totalNFTs, setTotalNFTs] = useState(10);
   const web3ModalRef = useRef();
 
   async function fetchCollection(deploymentAddress) {
@@ -61,8 +62,15 @@ export default function Home() {
       console.log("unable to get base uri");
     }
     try {
-      let _data = await getTokensMetaData(baseURIs, setNFTs, saleContract);
-      setLoading(false);
+      setTotalNFTs(baseURIs.length);
+      let _data = await getTokensMetaData(
+        baseURIs,
+        setNFTs,
+        saleContract,
+        () => {
+          setLoading(false);
+        }
+      );
     } catch (e) {
       console.log("errror:getmetadata ");
       setLoading(false);
@@ -114,7 +122,8 @@ export default function Home() {
   return (
     <div
       style={{
-        height: "100vh",
+        minHeight: "100vh",
+        height: "fit-content",
         background: "black",
       }}
     >
@@ -130,10 +139,10 @@ export default function Home() {
         <div
           style={{
             height: "100vh",
-            width: "100vw",
+            width: "100%",
             display: "flex",
-            alignItems: "center",
             justifyContent: "center",
+            alignItems: "center",
             background: "black",
             color: "white",
             fontSize: "20px",
@@ -175,7 +184,20 @@ export default function Home() {
                 image={NFTs.length > 0 ? NFTs[0].image : undefined}
               />
               {NFTs.length == 0 ? (
-                "Fetching Collections"
+                <div
+                  style={{
+                    height: "100vh",
+                    width: "100vw",
+                    display: "flex",
+                    justifyContent: "center",
+                    background: "black",
+                    color: "white",
+                    fontSize: "20px",
+                    fontWeight: "700",
+                  }}
+                >
+                  Fetching Collection...
+                </div>
               ) : (
                 <ShowNFTs contractAddress={currentDeployment} NFTs={NFTs} />
               )}

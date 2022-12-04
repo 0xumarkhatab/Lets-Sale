@@ -14,7 +14,7 @@ function embedGateway(_hash) {
     hash = _hash.slice(9);
   }
   //   console.log("modified hash is", hash);
-  let link = "https://ipfs.io/ipfs/" + hash;
+  let link = "https://gateway.pinata.cloud/ipfs/" + hash;
   //   console.log("returning link ", link);
   return link;
 }
@@ -35,30 +35,38 @@ export const getTokenMetadata = async (tokenUriHash, id) => {
   return _token;
 };
 
-export const getTokensMetaData = async (tokenURIs, setter, contract) => {
+export const getTokensMetaData = async (
+  tokenURIs,
+  setter,
+  contract,
+  finisher
+) => {
   let metadataArray = [];
-  console.log("toke uri are ",tokenURIs)
-  tokenURIs?.map(async (item, index) => {
-    await getTokenMetadata(item, index + 1).then(async (metadata) => {
-      //   console.log("metadata is ", metadata);
-      let _metadata = metadata;
-      let tokenIsMinted = await contract.isTokenIdExists(metadata.id);
-      _metadata.price = await contract.getNFTPrice(metadata.id);
-      if (tokenIsMinted) {
-        _metadata.owner = await contract.ownerOf(metadata.id);
-        metadataArray.push(_metadata);
-      } else {
-        _metadata.owner = "0x0000000";
-        metadataArray.push(_metadata);
-      }
-    });
+  console.log("toke uri are ", tokenURIs);
+  for (let index = 0; index < tokenURIs.length; index++) {
+    let item = tokenURIs[index];
+    let _metadata = await getTokenMetadata(item, index + 1);
+    //   console.log("metadata is ", metadata);
+    let tokenIsMinted = await contract.isTokenIdExists(_metadata.id);
+    _metadata.price = await contract.getNFTPrice(_metadata.id);
+    if (tokenIsMinted) {
+      _metadata.owner = await contract.ownerOf(_metadata.id);
+      metadataArray.push(_metadata);
+    } else {
+      _metadata.owner = "0000000000000";
+      metadataArray.push(_metadata);
+    }
+
     if (index + 1 == tokenURIs.length) {
-        console.log("metadata array is ", metadataArray);
+      // console.log("metadata array is ", metadataArray);
       if (setter) {
         setter(metadataArray);
       }
+      if (finisher) {
+        finisher();
+      }
       return metadataArray;
     }
-  });
+  }
   return metadataArray;
 };
